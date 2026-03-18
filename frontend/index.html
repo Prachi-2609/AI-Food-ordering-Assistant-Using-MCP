@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Food Assistant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🍔 AI Food Ordering Assistant</h1>
+
+    <div class="checkout-container" style="padding: 10px; text-align: center;">
+        <button id="mainCheckoutBtn" onclick="openCheckoutModal()" 
+                style="background-color: #27ae60; color: white; border: none; padding: 12px 30px; 
+                       border-radius: 8px; font-weight: bold; cursor: pointer; width: 90%; font-size: 16px;">
+            Proceed to Checkout 🛒
+        </button>
+    </div>
+
+    <div id="chat">
+      <div class="bot">
+        <div class="bubble">
+          👋 Welcome! I am your AI Food Ordering Assistant.<br/><br/>
+          I can help you with:<br/>
+          🔍 Search restaurants by city<br/>
+          📋 Browse restaurant menus<br/>
+          🛒 Add items to cart<br/>
+          ✅ Place your order<br/><br/>
+          <strong>Which city are you ordering from?</strong><br/>
+          We currently serve: <em>Lucknow, Delhi, Mumbai</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="prompt" placeholder="Ask for restaurants..." autocomplete="off" />
+        <button type="button" id="sendBtn" onclick="sendPrompt(); return false;">Send</button>
+    </div>
+</div>
+
+<div id="checkoutModal" class="modal">
+    <div style="background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 12px; width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative;">
+        
+        <h2 style="margin-top:0;">Checkout</h2>
+        <p>Delivery Details</p>
+        
+        <label>Address</label>
+        <textarea id="orderAddress" style="width:100%; margin-bottom:10px;"></textarea>
+        
+        <label>Phone</label>
+        <input type="text" id="orderPhone" style="width:100%; margin-bottom:10px;">
+        
+        <label>Payment</label>
+        <select id="orderPayment" style="width:100%; margin-bottom:10px;">
+            <option value="COD">Cash on Delivery</option>
+            <option value="UPI">UPI</option>
+        </select>
+
+        <div id="upiIdContainer" style="display:none; margin-bottom:10px;">
+            <input type="text" id="upiId" placeholder="UPI ID">
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button type="button" onclick="submitFinalOrder()" style="flex:1; background-color:#28a745;">Place Order</button>
+            <button type="button" onclick="closeModal()" style="flex:1; background-color:#dc3545;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
