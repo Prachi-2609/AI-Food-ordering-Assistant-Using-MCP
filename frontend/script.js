@@ -67,24 +67,32 @@ async function sendPrompt(e) {
 
 // 4. Checkout Modal Logic
 async function openCheckoutModal() {
-    const loadingId = appendMessage("bot", "⏳ Checking cart...");
     try {
         const response = await fetch('http://127.0.0.1:8000/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: "view cart", session_id: SESSION_ID })
+            body: JSON.stringify({
+                message: "view cart",
+                session_id: SESSION_ID
+            })
         });
+
         const data = await response.json();
-        
-        const loader = document.getElementById(loadingId);
-        if(loader) loader.remove();
 
         const status = data.reply || data.response || "";
-        if (status.includes("Rs.") || !status.toLowerCase().includes("empty")) {
-            document.getElementById('checkoutModal').style.display = 'block';
-        } else {
+
+        // Check if cart is empty
+        if (status.toLowerCase().includes("cart is empty")) {
             alert("Your cart is empty! Add some items first.");
+            return;
         }
+
+        // Show actual cart contents
+        document.getElementById("cartPreview").innerText = status;
+
+        // Open checkout modal
+        document.getElementById("checkoutModal").style.display = "block";
+
     } catch (e) {
         alert("Server error. Please try again.");
     }

@@ -23,15 +23,24 @@ tools = [
     },
     {
         "name": "add_to_cart",
-        "description": "Add a food item to the cart.",
+        "description": "Add an item to the cart ONLY if that exact item is present in the menu returned by get_restaurant for the selected restaurant. NEVER invent or guess an item. If the user asks for an item that is not in the menu, do not call this tool.",
         "parameters": {
             "type": "object",
             "properties": {
-                "restaurant_id": {"type": "integer", "description": "ID of the restaurant (use 0 if unknown)"},
-                "item_name":     {"type": "string",  "description": "Name of the item"},
-                "quantity":      {"type": "integer", "description": "Number of items (default 1)"}
+                "restaurant_id": {
+                    "type": "integer",
+                    "description": "ID of the restaurant"
+                },
+                "item_name": {
+                    "type": "string",
+                    "description": "Exact name of a menu item that is actually available at the selected restaurant. Never invent an item."
+                },
+                "quantity": {
+                    "type": "integer",
+                    "description": "Number of items to add. Default is 1."
+                }
             },
-            "required": ["item_name"] # Sirf item_name zaroori rakho
+            "required": ["item_name"]
         }
     },
     {

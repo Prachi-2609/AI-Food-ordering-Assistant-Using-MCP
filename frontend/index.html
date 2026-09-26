@@ -42,8 +42,23 @@
 <div id="checkoutModal" class="modal">
     <div style="background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 12px; width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative;">
         
-        <h2 style="margin-top:0;">Checkout</h2>
-        <p>Delivery Details</p>
+        <h2 style="margin-top:0;">Your Cart 🛒</h2>
+
+        <!-- Cart items will appear here -->
+        <div id="cartPreview" style="
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-height: 180px;
+            overflow-y: auto;
+        ">
+            Loading cart...
+        </div>
+
+        <hr>
+
+        <h3>Delivery Details</h3>
         
         <label>Address</label>
         <textarea id="orderAddress" style="width:100%; margin-bottom:10px;"></textarea>
@@ -62,8 +77,13 @@
         </div>
 
         <div style="display:flex; gap:10px; margin-top:20px;">
-            <button type="button" onclick="submitFinalOrder()" style="flex:1; background-color:#28a745;">Place Order</button>
-            <button type="button" onclick="closeModal()" style="flex:1; background-color:#dc3545;">Cancel</button>
+            <button type="button" onclick="submitFinalOrder()" style="flex:1; background-color:#28a745;">
+                Place Order
+            </button>
+
+            <button type="button" onclick="closeModal()" style="flex:1; background-color:#dc3545;">
+                Cancel
+            </button>
         </div>
     </div>
 </div>

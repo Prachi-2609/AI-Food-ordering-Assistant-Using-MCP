@@ -33,38 +33,38 @@ def get_restaurant(restaurant_id: int):
     menu_string = "\n".join([f"{row[0]} - Rs.{row[1]}" for row in rows])
     return f"STRICT MENU DATA FOR ID {restaurant_id}:\n{menu_string}\nEND OF DATA."
 
-def add_to_cart(restaurant_id: int, item_name: str, quantity: int):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
+# def add_to_cart(restaurant_id: int, item_name: str, quantity: int):
+#     try:
+#         conn = get_connection()
+#         cursor = conn.cursor()
         
-        # 1. VALIDATION: Check if item exists
-        cursor.execute(
-            "SELECT price FROM menu WHERE restaurant_id = ? AND LOWER(item_name) = LOWER(?)",
-            (int(restaurant_id), item_name.strip())
-        )
-        row = cursor.fetchone()
+#         # 1. VALIDATION: Check if item exists
+#         cursor.execute(
+#             "SELECT price FROM menu WHERE restaurant_id = ? AND LOWER(item_name) = LOWER(?)",
+#             (int(restaurant_id), item_name.strip())
+#         )
+#         row = cursor.fetchone()
         
-        if not row:
-            conn.close()
-            return {"status": "error", "message": f"Sorry, '{item_name}' is not on the menu for this restaurant."}
+#         if not row:
+#             conn.close()
+#             return {"status": "error", "message": f"Sorry, '{item_name}' is not on the menu for this restaurant."}
         
-        # 2. Insert into cart
-        price = row[0]
-        cursor.execute(
-            "INSERT INTO cart (restaurant_id, item_name, price, quantity) VALUES (?, ?, ?, ?)",
-            (int(restaurant_id), item_name.strip(), price, int(quantity))
-        )
-        conn.commit()
-        conn.close()
+#         # 2. Insert into cart
+#         price = row[0]
+#         cursor.execute(
+#             "INSERT INTO cart (restaurant_id, item_name, price, quantity) VALUES (?, ?, ?, ?)",
+#             (int(restaurant_id), item_name.strip(), price, int(quantity))
+#         )
+#         conn.commit()
+#         conn.close()
         
-        return {
-            "status": "success", 
-            "message": f"Added {quantity}x {item_name} (Rs.{price} each) to cart"
-        }
-    except Exception as e:
-        print(f"Error in add_to_cart: {e}")
-        return {"status": "error", "message": "Database error occurred while adding to cart."}
+#         return {
+#             "status": "success", 
+#             "message": f"Added {quantity}x {item_name} (Rs.{price} each) to cart"
+#         }
+#     except Exception as e:
+#         print(f"Error in add_to_cart: {e}")
+#         return {"status": "error", "message": "Database error occurred while adding to cart."}
 
 def view_cart():
     conn = get_connection()
@@ -158,7 +158,7 @@ def format_order_result(result):
         return "Your cart is empty. Add items before placing an order."
     return (
         f"Order placed successfully!\n\n"
-        f"Items ordered: {result['total_item']}\n"
+        f"Items ordered: {result['total_items']}\n"
         f"Total bill: Rs.{result['total_price']}\n"
         f"Your food will arrive soon!"
     )
@@ -382,43 +382,54 @@ You are a helpful Food Ordering Assistant.
 """
 
 def chat_with_llm(user_prompt: str, history: list):
-    text = user_prompt.lower().strip()
+    messages = history + [
+        {
+            "role": "user",
+            "content": user_prompt
+        }
+    ]
 
-    # --- 1. CONTEXT EXTRACTOR (History se aakhri Restaurant ID nikalna) ---
-    last_viewed_id = 0
-    for msg in reversed(history):
-        id_match = re.search(r'ID:\s*(\d+)', msg['content'])
-        if id_match:
-            last_viewed_id = int(id_match.group(1))
-            break
+    response = ollama.chat(
+        model="llama3.1",
+        messages=messages,
+        tools=[
+            {
+                "type": "function",
+                "function": tool
+            }
+            for tool in tools
+        ]
+    )
 
-    # --- 2. ORDER LOGIC (Strict Mapping) ---
-    if any(w in text for w in ["order", "add", "want"]):
-        # A. Current message mein ID dhoondo
-        msg_id_match = re.search(r'id\s*(\d+)', text)
-        target_id = int(msg_id_match.group(1)) if msg_id_match else last_viewed_id
-        
-        if target_id == 0:
-            return "I need to know which restaurant you're ordering from. Please use the Restaurant ID.", history
+    # --------------------------------------------------
+    # TOOL CALL
+    # --------------------------------------------------
+    if response.message.tool_calls:
 
-        # B. Call the strict add function
-        db_res = add_to_cart(restaurant_id=target_id, item_name=text)
-        return db_res, history + [{"role": "user", "content": user_prompt}, {"role": "assistant", "content": db_res}]
+        results = []
 
-    # --- 3. VIEW CART / CHECKOUT ---
-    if any(w in text for w in ["view", "cart", "checkout"]):
-        result = format_cart(view_cart())
-        if "empty" not in result.lower():
-            result += "\n\nReady? Click **Proceed to Checkout**! 🛒"
-        return result, history + [{"role": "user", "content": user_prompt}, {"role": "assistant", "content": result}]
+        for tool_call in response.message.tool_calls:
 
-    # --- 4. CITY DETECTION ---
-    city = next((c.capitalize() for c in ["lucknow", "delhi", "mumbai"] if c in text), None)
-    if city:
-        restaurants = search_by_area(city)
-        menu_summary = f"Restaurants in {city}. Use the ID to order:\n"
-        for r in restaurants:
-            menu_summary += f"\n🍴 **{r[1]}** (ID: {r[0]})\n{get_restaurant(r[0])}\n"
-        return menu_summary, history + [{"role": "user", "content": user_prompt}, {"role": "assistant", "content": menu_summary}]
+            tool_name = tool_call.function.name
+            arguments = tool_call.function.arguments
 
-    return "I can help you order! Just say 'order [item]' or name a city like Delhi.", history
+            # Execute actual database function
+            tool_result = execute_tool(tool_name, arguments)
+
+            # Store every tool result
+            results.append(tool_result)
+
+        # Combine all tool results
+        reply = "\n\n".join(results)
+
+    else:
+        reply = response.message.content
+
+    updated_history = messages + [
+        {
+            "role": "assistant",
+            "content": reply
+        }
+    ]
+
+    return reply, updated_history

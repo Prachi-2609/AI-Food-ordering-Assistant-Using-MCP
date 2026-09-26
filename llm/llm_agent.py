@@ -41,7 +41,7 @@ def chat_with_llm(user_prompt):
     })
 
     response = ollama.chat(
-        model="llama3",
+        model="llama3.1",
         messages=conversation_history
     )
 
