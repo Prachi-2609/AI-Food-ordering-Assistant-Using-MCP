@@ -33,38 +33,6 @@ def get_restaurant(restaurant_id: int):
     menu_string = "\n".join([f"{row[0]} - Rs.{row[1]}" for row in rows])
     return f"STRICT MENU DATA FOR ID {restaurant_id}:\n{menu_string}\nEND OF DATA."
 
-# def add_to_cart(restaurant_id: int, item_name: str, quantity: int):
-#     try:
-#         conn = get_connection()
-#         cursor = conn.cursor()
-        
-#         # 1. VALIDATION: Check if item exists
-#         cursor.execute(
-#             "SELECT price FROM menu WHERE restaurant_id = ? AND LOWER(item_name) = LOWER(?)",
-#             (int(restaurant_id), item_name.strip())
-#         )
-#         row = cursor.fetchone()
-        
-#         if not row:
-#             conn.close()
-#             return {"status": "error", "message": f"Sorry, '{item_name}' is not on the menu for this restaurant."}
-        
-#         # 2. Insert into cart
-#         price = row[0]
-#         cursor.execute(
-#             "INSERT INTO cart (restaurant_id, item_name, price, quantity) VALUES (?, ?, ?, ?)",
-#             (int(restaurant_id), item_name.strip(), price, int(quantity))
-#         )
-#         conn.commit()
-#         conn.close()
-        
-#         return {
-#             "status": "success", 
-#             "message": f"Added {quantity}x {item_name} (Rs.{price} each) to cart"
-#         }
-#     except Exception as e:
-#         print(f"Error in add_to_cart: {e}")
-#         return {"status": "error", "message": "Database error occurred while adding to cart."}
 
 def view_cart():
     conn = get_connection()
